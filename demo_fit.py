@@ -32,7 +32,8 @@ def infer_hypotest(workspace, metadata, doc):
     return {
         "metadata": metadata,
         "CLs_obs": float(
-            pyhf.infer.hypotest(test_poi, data, model, test_stat="qtilde")
+            # pyhf.infer.hypotest(test_poi, data, model, test_stat="qtilde")
+            pyhf.infer.hypotest(test_poi, data, model, qtilde=True)
         ),
         "Fit-Time": time.time() - tick,
     }
