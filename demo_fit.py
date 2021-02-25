@@ -76,7 +76,7 @@ def main():
         try:
             w = fxc.get_result(prepare_task)
         except Exception as e:
-            print(f"prepare {e}")
+            print(f"prepare: {e}")
             sleep(15)
 
     print("--------------------")
