@@ -1,7 +1,7 @@
 import json
 import sys
-from time import sleep
 from pathlib import Path
+from time import sleep
 
 import requests
 from funcx.sdk.client import FuncXClient
