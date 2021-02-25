@@ -1,6 +1,7 @@
 import json
 import sys
 from time import sleep
+from pathlib import Path
 
 import requests
 from funcx.sdk.client import FuncXClient
@@ -45,7 +46,8 @@ def main():
     NUM_RUNS = 70
 
     # locally get pyhf pallet for analysis
-    download("https://doi.org/10.17182/hepdata.90607.v3/r3", "1Lbb-pallet")
+    if not Path("1Lbb-pallet").exists():
+        download("https://doi.org/10.17182/hepdata.90607.v3/r3", "1Lbb-pallet")
     with open("1Lbb-pallet/BkgOnly.json") as bkgonly_json:
         bkgonly_workspace = json.load(bkgonly_json)
 
