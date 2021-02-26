@@ -54,12 +54,13 @@ def main():
 
     pyhf_endpoint = "a727e996-7836-4bec-9fa2-44ebf7ca5302"
 
+    # Initialize funcX client
     fxc = FuncXClient()
     fxc.max_requests = 200
 
+    # register and execute background only workspace
     prepare_func = fxc.register_function(prepare_workspace)
     infer_func = fxc.register_function(infer_hypotest)
-
     prepare_task = fxc.run(
         bkgonly_workspace, endpoint_id=pyhf_endpoint, function_id=prepare_func
     )
@@ -71,17 +72,16 @@ def main():
     patch = patchset["patches"][0]
     name = patch["metadata"]["name"]
 
-    w = None
-
-    while not w:
+    workspace = None
+    while not workspace:
         try:
-            w = fxc.get_result(prepare_task)
-        except Exception as e:
-            print(f"prepare: {e}")
+            workspace = fxc.get_result(prepare_task)
+        except Exception as excep:
+            print(f"prepare: {excep}")
             sleep(15)
 
     print("--------------------")
-    print(w)
+    print(workspace)
 
     NUM_RUNS = len(patchset["patches"])
     tasks = {}
@@ -89,7 +89,7 @@ def main():
         patch = patchset["patches"][i]
         name = patch["metadata"]["name"]
         task_id = fxc.run(
-            w,
+            workspace,
             patch["metadata"],
             patch["patch"],
             endpoint_id=pyhf_endpoint,
@@ -106,8 +106,8 @@ def main():
                         f"Task {task} complete, there are {count_complete(tasks.values())} results now"
                     )
                     tasks[task]["result"] = result
-                except Exception as e:
-                    print(e)
+                except Exception as excep:
+                    print(excep)
                     sleep(15)
 
     print("--------------------")
