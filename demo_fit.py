@@ -5,6 +5,7 @@ from time import sleep
 
 import requests
 from funcx.sdk.client import FuncXClient
+import pyhf
 from pyhf.contrib.utils import download
 
 
@@ -44,13 +45,36 @@ def count_complete(l):
 
 
 def main():
-    NUM_RUNS = 70
-
     # locally get pyhf pallet for analysis
-    if not Path("1Lbb-pallet").exists():
-        download("https://doi.org/10.17182/hepdata.90607.v3/r3", "1Lbb-pallet")
-    with open("1Lbb-pallet/BkgOnly.json") as bkgonly_json:
+    # if not Path("1Lbb-pallet").exists():
+    #     download("https://doi.org/10.17182/hepdata.90607.v3/r3", "1Lbb-pallet")
+
+    # pallet_name = "InclSS3L-pallet"
+    # pallet_url = "https://www.hepdata.net/record/resource/1935157?view=true"
+    # analysis_name = "Rpc2L0b"
+    pallet_name = "1Lbb-pallet"
+    pallet_url = "https://www.hepdata.net/record/resource/1408476?view=true"
+    analysis_name = None
+
+    patchset_name = pallet_name + "/"
+    if analysis_name is not None:
+        patchset_name += f"{analysis_name}_"
+
+    if not Path(pallet_name).exists():
+        download(pallet_url, pallet_name)
+    with open(f"{patchset_name}BkgOnly.json") as bkgonly_json:
         bkgonly_workspace = json.load(bkgonly_json)
+
+    # with open(f"{patchset_name}patchset.json") as patchset_json:
+    #     patchset = pyhf.PatchSet(json.load(patchset_json))
+    #     print(patchset)
+    #     print(patchset.patches[0])
+
+    #     patch = patchset.patches[0]
+    #     patch_name = patch.name
+    #     print(patch_name)
+    #     print(patch.metadata)
+    # ##
 
     pyhf_endpoint = "a727e996-7836-4bec-9fa2-44ebf7ca5302"
 
@@ -66,11 +90,15 @@ def main():
     )
 
     # While this cooks, let's read in the patch set
-    patchset = None
-    with open("1Lbb-pallet/patchset.json", "r") as readfile:
-        patchset = json.load(readfile)
-    patch = patchset["patches"][0]
-    name = patch["metadata"]["name"]
+    # patchset = None
+    # with open("1Lbb-pallet/patchset.json", "r") as readfile:
+    #     patchset = json.load(readfile)
+    # patch = patchset["patches"][0]
+    # name = patch["metadata"]["name"]
+
+    with open(f"{patchset_name}patchset.json") as patchset_json:
+        patchset = pyhf.PatchSet(json.load(patchset_json))
+    patch = patchset.patches[0]
 
     workspace = None
     while not workspace:
@@ -83,19 +111,19 @@ def main():
     print("--------------------")
     print(workspace)
 
-    NUM_RUNS = len(patchset["patches"])
+    # NUM_RUNS = len(patchset.patches)
+    NUM_RUNS = 5
     tasks = {}
     for i in range(NUM_RUNS):
-        patch = patchset["patches"][i]
-        name = patch["metadata"]["name"]
+        patch = patchset.patches[i]
         task_id = fxc.run(
             workspace,
-            patch["metadata"],
-            patch["patch"],
+            patch.metadata,
+            patch,
             endpoint_id=pyhf_endpoint,
             function_id=infer_func,
         )
-        tasks[name] = {"id": task_id, "result": None}
+        tasks[patch.name] = {"id": task_id, "result": None}
 
     while count_complete(tasks.values()) < NUM_RUNS:
         for task in tasks.keys():
